@@ -52,7 +52,8 @@ $metadata = [
     'sections' => ['description' => 'Empfängererklärungen mit PDF, Unterschrift und geschütztem Archiv.', 'changelog' => '<p>' . nl2br(htmlspecialchars($notes, ENT_QUOTES, 'UTF-8')) . '</p>'],
 ];
 file_put_contents($dist . '/update.json', json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n");
-file_put_contents($dist . '/release-notes.md', $notes . "\n\nEinmaliger Wechsel auf die Update-Version: Plugin-ZIP in WordPress hochladen und ersetzen. Danach unter Plugins automatische Updates für Empfängererklärung aktivieren.\n");
+$setup_note = $version === '1.2.0' ? "\n\nEinmaliger Wechsel auf die Update-Version: Plugin-ZIP in WordPress hochladen und ersetzen. Danach unter Plugins automatische Updates für Empfängererklärung aktivieren." : '';
+file_put_contents($dist . '/release-notes.md', $notes . $setup_note . "\n");
 $hashes = '';
 foreach ([$name, 'update.json'] as $asset) { $hashes .= hash_file('sha256', $dist . '/' . $asset) . '  ' . $asset . "\n"; }
 file_put_contents($dist . '/SHA256SUMS.txt', $hashes);

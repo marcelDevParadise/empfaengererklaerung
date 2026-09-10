@@ -1,30 +1,26 @@
-# Validierung · Version 1.1.0
+# Validierung · Version 1.2.0
 
-Stand: 10.09.2026. Die Release-ZIP wurde lokal unter PHP 7.4.33 durch den WordPress-Installer installiert und aktiviert. Vorhandene Archiveinträge blieben erhalten.
+Stand: 10.09.2026. GitHub-Update-Anbindung für das öffentliche Repository `marcelDevParadise/empfaengererklaerung`.
 
-## Umgebung
+## Erfolgreiche Prüfungen
 
-Windows, PHP 7.4.33 mit DOM, mbstring, GD und SQLite; WordPress 7.1 mit offiziellem SQLite-Adapter. Die isolierte PHP-7.4-Testlaufzeit verwendet die SQLite-DLL aus dem vorhandenen PHP-8.3-Paket. Diese lokale Testabhängigkeit gehört nicht zum Plugin; das Zielhosting verwendet MySQL/MariaDB.
+- **73 Integrationstests:** Bestehendes Formular, feste Absenderadresse, Sendungsnummerprüfung, PDF-Erstellung, E-Mail-Testtransport, Backend-Überarbeitungen, Originalerhalt, Zugriffsschutz und Löschung. Lokal unter PHP 7.4.33 / WordPress 7.1 und zusätzlich im GitHub-Workflow unter PHP 7.4 / WordPress 6.6 erfolgreich.
+- **21 Updateprüfungen:** Versionsvergleich, native WordPress-Updateliste und Plugin-Details, erwartete vollständige Release-ZIP, keine Daten in URL-Abfrageparametern, unverändertes Verhalten anderer Plugins, Ablehnung fremder/fehlender Downloads und von Vorabversionen, PHP-/WordPress-Kompatibilität, ungültige Metadaten, fehlendes Release und Netzwerkausfälle. Lokal und im GitHub-Workflow erfolgreich.
+- **Echter WordPress-Upgrade im Hintergrundmodus:** Eine isolierte Installation mit älterem Versionsheader erkennt die neue Version und installiert das gebaute Paket über `Plugin_Upgrader`. Plugin bleibt aktiv, Einstellungen sowie Original-PDF und Überarbeitung bleiben unverändert. Metadaten und Paket-Download werden hierbei aus lokalen Fixtures geliefert; kein Zugriff auf eine Kundenwebsite. Lokal und im GitHub-Workflow erfolgreich.
+- **53 Browserprüfungen:** Desktop und Touch/Mobil, Unterschrift, Sendungsnummer, Backend-Überarbeitung, PDF-Downloads, Rechte, Einstellungen und Sammellöschung mit Version 1.2.0 erneut erfolgreich.
+- **6 neue Browserprüfungen:** „Check for updates“ sichtbar und bedienbar; native automatische Updates lassen sich aktivieren, über Neuladen hinweg speichern und wieder deaktivieren. Die Updateprüfung meldet bei der aktuellen Version keinen Aktualisierungsbedarf. Keine JavaScript-Laufzeitfehler. Die Pluginliste wurde zusätzlich visuell anhand des Screenshots geprüft.
+- **Paketprüfung:** `scripts/release.php` prüft Versionsheader, Konstante, Stable tag, gegebenenfalls Git-Tag, eingebundene Abhängigkeiten und jede einzelne ZIP-Datei anhand ihres SHA-256 gegen die Quelldatei. ZIP, Metadaten und Prüfsummen werden zusammen gebaut. PHP-Syntaxprüfung erfolgt im Workflow für Plugin einschließlich Abhängigkeiten, Skripte und Tests.
 
-Chrome über Playwright: Desktop 1365 × 1000 und Touch-/Mobilansicht 390 × 844. Dompdf 3.1.6; PDF-Darstellung mit PDF.js. Ausschließlich lokaler PHPMailer-Testtransport, keine extern versendeten E-Mails.
+## Releaseweg
 
-## Ergebnis
+Der Workflow `Validate and release` prüft Commits auf main, Pull Requests und Versionstags. Ein geprüfter Versionstag erzeugt zunächst einen Release-Entwurf samt vollständiger ZIP, `update.json` und `SHA256SUMS.txt`, der danach veröffentlicht wird. Branch-Commits lösen keine Plugin-Veröffentlichung aus. Der erste main-Lauf ist erfolgreich: https://github.com/marcelDevParadise/empfaengererklaerung/actions/runs/34481552397
 
-- **73 serverseitige Prüfungen erfolgreich** (`tests/integration.php`, PHP 7.4.33). Pflichtfelder, feste Absenderanschrift, numerische Sendungsnummer mit Präfix 003404347382, führende Nullen, Ablehnung von Buchstaben/Leerzeichen/Sonderzeichen/HTML/falschem Präfix und bloßem Präfix; Signatur, Datum, Nachnahme, PDF, Sitzungen, Wiederholungen, Mailfehler und Löschung.
-- **Neue Backend-Funktion geprüft:** Administrator kann Angaben ohne Übernahme der Originalunterschrift korrigieren. Suchdaten werden aktualisiert; ursprüngliche Daten und PDF bleiben erhalten. Separates Korrektur-PDF ist ausdrücklich nicht erneut unterschrieben. Bearbeiter, Zeitpunkt und fortlaufende Nummer werden gespeichert. Veraltete Bearbeitungsstände werden abgelehnt. Zweite Überarbeitung und identische Wiederholung der ursprünglichen Kundenübermittlung funktionieren.
-- **53 Browserprüfungen erfolgreich** (`tests/browser.mjs`, PHP-7.4.33-Webserver). Desktop-/Touch-Übermittlung, Sendungsnummerfehler, Backend-Maske, tatsächliches Speichern und Wiederöffnen, serverseitige Ablehnung ungültiger Korrekturwerte, Nonce-Prüfung, Konfliktmeldung, bytegleicher Originaldownload und separater Korrekturdownload. Abonnenten und anonyme Nutzer erhalten keinen Bearbeitungs- oder Korrekturdownloadzugriff. Suche, Versandversuch, Einstellungen und Sammellöschung funktionieren. Keine JavaScript-Laufzeitfehler im abschließenden Lauf.
-- **PDF-Prüfung:** Standard, Logo, Nachnahmevarianten und überarbeitete Fassung jeweils eine Seite; lange Originalangaben zwei Seiten. Das im Browser erzeugte Korrektur-PDF wurde gerendert und visuell geprüft: korrigierter Inhalt und E-Mail-Adresse, feste Absenderanschrift, führende Nullen, sichtbare Kennzeichnung, keine Originalunterschrift. Die Backend-Detailansicht wurde ebenfalls anhand des Screenshots geprüft.
-- **Mail-Nachweis:** Der lokale Mail-Log zeigt beim erneuten Versand nach einer Korrektur weiterhin die ursprüngliche Kundenadresse und denselben Original-PDF-Hash. Das Speichern der Korrektur selbst versendet keine E-Mail.
-- **Paket:** 334 Dateien einschließlich Dompdf; 232 PHP-Dateien bestehen die Syntaxprüfung unter PHP 7.4.33. Keine Testumgebung oder Node-Abhängigkeiten im ZIP. WordPress-Installation, Aktivierung und Erhalt des Archivs erfolgreich (`tests/package-install.php`).
+Die verbindlichen Paket-Prüfsummen stehen in `SHA256SUMS.txt` des jeweiligen GitHub-Releases. Lokale ZIPs und GitHub-Builds können wegen Archivzeitstempeln und normalisierten Zeilenenden unterschiedliche Bytes besitzen.
 
-ZIP: `dist/empfaengererklaerung-1.1.0.zip` (4.163.226 Bytes).
+## Testumgebung und Grenzen
 
-SHA-256: `E31D7C1C33D5ADFB10F09164CEF74FF5D31718185B68214058E4514F2BD0D97D`
+Lokal Windows / PHP 7.4.33 / WordPress 7.1; im GitHub-Workflow Linux / PHP 7.4 / WordPress 6.6. Beide verwenden den offiziellen SQLite-Adapter 3.0.1. Die portable Windows-Testlaufzeit verwendet die zuvor dokumentierte neuere SQLite-DLL. Das Zielhosting mit MySQL/MariaDB ist nicht Teil dieser Prüfungen.
 
-## Verhalten und Grenzen
+Lokaler PHPMailer-Testtransport ohne externe E-Mails. Die Browserprüfungen laufen in Chrome über Playwright, Desktop 1365 × 1000 und Mobil/Touch 390 × 844. Der neue UI-Test aktiviert nur die Auto-Update-Bedienelemente; echte zeitgesteuerte Updates bleiben in der isolierten Testumgebung abgeschaltet. Nach dem Test werden die ursprünglichen Einstellungen wiederhergestellt und die temporäre Testhilfe entfernt.
 
-Es werden das unterschriebene Original und die jeweils letzte überarbeitete Fassung gespeichert; Zwischenfassungen werden ersetzt. Die feste Absenderadresse bleibt auch im Editor schreibgeschützt. Eine feste Gesamtlänge für Sendungsnummern wurde nicht vorgegeben; es gelten Präfix, mindestens eine weitere Ziffer und das bestehende Maximum von 100 Zeichen.
-
-Kundenlinks und Mail-Wiederholungen beziehen sich auf das Original. Korrekturen sind als separates PDF nur im Backend verfügbar und werden nicht automatisch versendet. Sie enthalten keine neue Kundenbestätigung oder Unterschrift. Das Korrektur-PDF nutzt Unternehmensname und Akzentfarbe des archivierten Vorgangs; ein nur im Original-PDF eingebettetes Logo wird nicht übernommen.
-
-Die Tests belegen die lokale PHP-7.4.33-/SQLite-Umgebung. MySQL/MariaDB auf dem tatsächlichen Hosting, WordPress 6.6 als Mindestversion, physische Mobilgeräte und echte Postfachzustellung wurden nicht geprüft. Auf der Zielwebsite wurde nichts installiert oder veröffentlicht. Dort bleiben Installation und ein vollständiger Testversand mit der bestehenden Mailkonfiguration zu prüfen.
+Auf der Zielwebsite wurde nichts installiert. Dort ist einmal die neue ZIP zu installieren und unter Plugins die automatische Aktualisierung zu aktivieren. Hintergrundaufgaben und ausgehende HTTPS-Verbindungen zu GitHub müssen vom Hosting zugelassen sein. Hosting, reale Postfachzustellung und physische Mobilgeräte bleiben separat zu prüfen.
