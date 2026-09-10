@@ -2,6 +2,20 @@
 
 Stand: 10.09.2026. GitHub-Update-Anbindung für das öffentliche Repository `marcelDevParadise/empfaengererklaerung`.
 
+## Veröffentlichtes Paket und Live-Download
+
+Release: https://github.com/marcelDevParadise/empfaengererklaerung/releases/tag/v1.2.0
+
+Der vollständige Tag-Workflow einschließlich Veröffentlichung ist erfolgreich: https://github.com/marcelDevParadise/empfaengererklaerung/actions/runs/34481883115
+
+Nach Veröffentlichung wurden `releases/latest/download/update.json`, die ZIP und `SHA256SUMS.txt` ohne Anmeldung von GitHub heruntergeladen und die Prüfsummen verglichen. Zusätzlich hat die isolierte WordPress-Installation unter PHP 7.4.33 die Metadaten und das Update-Paket direkt von GitHub abgerufen und über den echten Hintergrund-Upgradeweg installiert. In diesem abschließenden Test wurden die Metadaten und ZIP-Downloads nicht simuliert. Plugin blieb aktiv; Einstellungen, Original-PDF und Korrektur blieben unverändert.
+
+ZIP: `empfaengererklaerung-1.2.0.zip`, 4.346.318 Bytes, 454 Dateien; davon 275 PHP-Dateien.
+
+SHA-256: `21e141057a2b2f4bb38dc267de7d77a1b40e8411aac2f469000b1e9bcdd996e8`
+
+Die lokale Datei `dist/empfaengererklaerung-1.2.0.zip` wurde durch genau dieses veröffentlichte, geprüfte Paket ersetzt.
+
 ## Erfolgreiche Prüfungen
 
 - **73 Integrationstests:** Bestehendes Formular, feste Absenderadresse, Sendungsnummerprüfung, PDF-Erstellung, E-Mail-Testtransport, Backend-Überarbeitungen, Originalerhalt, Zugriffsschutz und Löschung. Lokal unter PHP 7.4.33 / WordPress 7.1 und zusätzlich im GitHub-Workflow unter PHP 7.4 / WordPress 6.6 erfolgreich.
