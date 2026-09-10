@@ -1,0 +1,13 @@
+* text=auto
+*.php text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.ps1 text eol=crlf
+*.ttf binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.zip binary

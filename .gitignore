@@ -1,0 +1,13 @@
+.tools/
+dist/
+node_modules/
+test-results/
+beispiele/
+*.log
+*.jsonl
+*.sqlite*
+.env
+.env.*
+wp-config.php
+.agents/
+.codex/

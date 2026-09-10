@@ -1,0 +1,81 @@
+name: Validate and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@b604ade2a87db23f8871b7182e69ec5e75effb45 # v2
+        with:
+          php-version: '7.4'
+          extensions: dom, mbstring, gd, pdo_sqlite, sqlite3, zip
+          coverage: none
+      - name: PHP 7.4 syntax
+        run: |
+          rg --files empfaengererklaerung scripts tests -g '*.php' -0 | xargs -0 -n 1 php -l
+      - name: Build complete release package
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then php scripts/release.php "$REF_NAME"; else php scripts/release.php; fi
+      - name: Prepare isolated WordPress 6.6 tests
+        run: |
+          mkdir -p .tools
+          curl --fail --location --retry 3 https://wordpress.org/wordpress-6.6.zip -o .tools/wordpress.zip
+          unzip -q .tools/wordpress.zip -d .tools
+          curl --fail --location --retry 3 https://downloads.wordpress.org/plugin/sqlite-database-integration.3.0.1.zip -o .tools/sqlite.zip
+          unzip -q .tools/sqlite.zip -d .tools
+          cp -R empfaengererklaerung .tools/wordpress/wp-content/plugins/
+          php tests/setup-local.php
+      - name: Integration, update handling and real WordPress upgrade
+        run: |
+          php tests/integration.php
+          php tests/updater.php
+          php tests/update-install.php
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: plugin-release
+          path: |
+            dist/empfaengererklaerung-*.zip
+            dist/update.json
+            dist/SHA256SUMS.txt
+            dist/release-notes.md
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'marcelDevParadise/empfaengererklaerung'
+    needs: validate
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Download tested build and publish complete release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh run download "$RUN_ID" --name plugin-release --dir dist
+          cd dist
+          sha256sum --check SHA256SUMS.txt
+          gh release create "$RELEASE_TAG" empfaengererklaerung-*.zip update.json SHA256SUMS.txt --verify-tag --draft --title "Empfängererklärung $RELEASE_TAG" --notes-file release-notes.md
+          gh release edit "$RELEASE_TAG" --draft=false --latest
