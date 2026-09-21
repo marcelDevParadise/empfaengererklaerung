@@ -105,7 +105,9 @@ final class EE_Plugin {
         catch (Throwable $error) { return new WP_Error('pdf_failed', 'Das PDF konnte nicht erstellt werden. Deine Angaben bleiben erhalten. Bitte versuche es erneut.', ['status' => 500]); }
         $data['_brand'] = ['company' => $brand['company'], 'accent' => $brand['accent']];
         $data['_mail'] = array_intersect_key($settings, array_flip(['customer_subject', 'customer_body', 'service_subject', 'service_body']));
-        // Signature is already embedded in the immutable PDF; do not keep a second copy.
+        // Keep the validated image in the protected archive so a revised PDF can
+        // display the original signature with an explicit revision notice.
+        $data['_signature'] = $data['signature'];
         unset($data['signature']);
         $id = EE_Store::insert([
             'reference' => $reference, 'request_hash' => $request_hash, 'payload_hash' => $payload_hash,

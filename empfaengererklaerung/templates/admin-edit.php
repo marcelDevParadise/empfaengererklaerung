@@ -4,7 +4,7 @@ $errors = $error ? ($error->get_error_data()['fields'] ?? []) : [];
 $value = static function ($key) use ($data): string { return is_string($data[$key] ?? null) ? $data[$key] : ''; };
 ?>
 <div class="wrap ee-admin"><h1>Angaben bearbeiten · <?= esc_html($row->reference) ?></h1>
-<p>Speichere korrigierte Angaben als überarbeitete Fassung mit eigenem PDF. Das unterschriebene Original bleibt erhalten. Es wird keine E-Mail versendet. Die letzte überarbeitete Fassung wird beim erneuten Speichern ersetzt.</p>
+<p>Speichere korrigierte Angaben als überarbeitete Fassung mit eigenem PDF. Das unterschriebene Original bleibt erhalten. <?= !empty($stored['_signature']) ? 'Die Originalunterschrift wird mit einem Hinweis auf die Überarbeitung übernommen.' : 'Bei älteren Erklärungen ist die Unterschrift nur im Original-PDF vorhanden und kann nicht automatisch übernommen werden.' ?> Es wird keine E-Mail versendet. Die letzte überarbeitete Fassung wird beim erneuten Speichern ersetzt.</p>
 <?php if ($error): ?><div class="notice notice-error"><p><?= esc_html($error->get_error_message()) ?></p><?php foreach ($errors as $message): ?><p><?= esc_html($message) ?></p><?php endforeach; ?></div><?php endif; ?>
 <form method="post" action="<?= esc_url(admin_url('admin-post.php')) ?>">
 <?php wp_nonce_field('ee_archive_action'); ?><input type="hidden" name="action" value="ee_archive_action"><input type="hidden" name="operation" value="edit"><input type="hidden" name="id" value="<?= (int) $id ?>"><input type="hidden" name="revision" value="<?= esc_attr($revision) ?>">

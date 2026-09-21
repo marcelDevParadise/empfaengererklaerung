@@ -4,7 +4,7 @@ Tags: empfaengererklaerung, formular, pdf
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,7 +32,7 @@ An Mailversand übergeben bestätigt nur die Übergabe an den Mailtransport. Ein
 
 == Daten und Berechtigungen ==
 
-Formularwerte und PDF werden in einer eigenen WordPress-Datenbanktabelle gespeichert, nicht in der Mediathek. Die Signatur ist im fertigen PDF eingebettet. Nur Administratoren erhalten zunächst die Berechtigung manage_ee_declarations.
+Formularwerte und PDF werden in einer eigenen WordPress-Datenbanktabelle gespeichert, nicht in der Mediathek. Die Signatur ist im fertigen PDF eingebettet und wird für neue Erklärungen zusätzlich im geschützten Archiv gespeichert, damit sie in überarbeitete PDFs übernommen werden kann. Für ältere Erklärungen liegt sie nur im Original-PDF vor. Nur Administratoren erhalten zunächst die Berechtigung manage_ee_declarations.
 
 Keine automatische Löschfrist. Deaktivierung und Deinstallation erhalten Erklärungen und Einstellungen. Zur Löschung die Einträge vorher ausdrücklich im Archiv entfernen. Bereits versendete E-Mail-Kopien und externe Backups werden dadurch nicht gelöscht.
 
@@ -59,6 +59,9 @@ HTTPS, Unternehmensangaben, Service-E-Mail, tatsächliche E-Mail-Zustellung samt
 Version 1 ist für Einzelinstallationen gedacht. In Multisite einzeln pro Website aktivieren; eine netzwerkweite Aktivierung wird nicht angeboten.
 
 == Changelog ==
+
+= 1.2.1 =
+Service-E-Mails setzen die Formularadresse als Antwortadresse. Weitere Formularfelder werden in E-Mail-Vorlagen ersetzt. Neue Erklärungen behalten die Unterschrift für überarbeitete PDFs; diese kennzeichnen sie als Unterschrift aus dem Original und die Änderungen als nicht erneut bestätigt.
 
 = 1.2.0 =
 GitHub-Updates über den normalen WordPress-Updater. Fertige Release-ZIP und Update-Metadaten werden gemeinsam veröffentlicht. Öffentliche Downloads ohne Token; automatische Installation über die WordPress-Option für Plugin-Updates.

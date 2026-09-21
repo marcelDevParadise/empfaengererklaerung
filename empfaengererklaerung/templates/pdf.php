@@ -55,6 +55,10 @@ p { margin: 7pt 0; }
 <?php if (empty($data['_revised_at'])): ?>
 <img class="signature" src="<?= esc_attr($data['signature']) ?>" alt="Unterschrift">
 <div class="signline"><?= $e($data['first_name'] . ' ' . $data['last_name']) ?><?= $data['person'] === 'wir' ? ' · unterschreibt für die Empfänger' : '' ?></div>
-<?php else: ?><p>Diese Angaben wurden im Backend überarbeitet. Für diese Fassung liegt keine neue Unterschrift der erklärenden Person vor.</p><?php endif; ?>
+<?php elseif (!empty($data['signature'])): ?>
+<p class="muted">Unterschrift aus dem Original übernommen. Die überarbeiteten Angaben wurden nicht erneut bestätigt.</p>
+<img class="signature" src="<?= esc_attr($data['signature']) ?>" alt="Unterschrift aus dem Original">
+<div class="signline"><?= $e($data['first_name'] . ' ' . $data['last_name']) ?></div>
+<?php else: ?><p>Diese Angaben wurden im Backend überarbeitet. Für diese Fassung liegt keine neue Unterschrift der erklärenden Person vor. Die Unterschrift ist im Original-PDF enthalten.</p><?php endif; ?>
 </div>
 </body></html>

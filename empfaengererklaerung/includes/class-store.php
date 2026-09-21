@@ -75,8 +75,10 @@ final class EE_Store {
         $clean['_revised_at'] = gmdate('Y-m-d H:i:s');
         $clean['_revised_by'] = get_current_user_id();
         $clean['_revision_number'] = (int) ($original['_correction']['_revision_number'] ?? 0) + 1;
+        if (!empty($original['_signature'])) { $clean['signature'] = $original['_signature']; }
         try { $pdf = EE_PDF::generate($clean, $original['_brand'] + ['logo' => ''], $row->reference); }
         catch (Throwable $error) { return new WP_Error('pdf_failed', 'Das überarbeitete PDF konnte nicht erstellt werden. Bitte erneut versuchen.'); }
+        unset($clean['signature']);
         $clean['_pdf'] = base64_encode($pdf);
         $original['_correction'] = $clean;
         global $wpdb;
@@ -100,7 +102,20 @@ final class EE_Store {
         if (!$row) { return; }
         $data = json_decode($row->data, true);
         $settings = $data['_mail'];
-        $replacements = ['{vorgang}' => $row->reference, '{name}' => $data['first_name'] . ' ' . $data['last_name'], '{sendungsnummer}' => $data['tracking'], '{unternehmen}' => $data['_brand']['company']];
+        $replacements = [
+            '{vorgang}' => $row->reference,
+            '{name}' => $data['first_name'] . ' ' . $data['last_name'],
+            '{vorname}' => $data['first_name'], '{nachname}' => $data['last_name'],
+            '{email}' => $data['email'], '{telefon}' => $data['phone'],
+            '{anschrift}' => $data['address'], '{sendungsnummer}' => $data['tracking'],
+            '{versanddienstleister}' => $data['carrier'], '{absender}' => $data['sender'],
+            '{empfaenger}' => $data['recipient'], '{sendungsinhalt}' => $data['contents'],
+            '{zustellempfaenger}' => $data['delivery_to'],
+            '{zustelldatum}' => $data['delivery_date'] ? EE_Validation::date($data['delivery_date']) : '',
+            '{empfangsdatum}' => $data['received_date'] ? EE_Validation::date($data['received_date']) : '',
+            '{ort}' => $data['place'], '{datum}' => EE_Validation::date($data['date']),
+            '{unternehmen}' => $data['_brand']['company'],
+        ];
         $subject = strtr($settings[$target . '_subject'], $replacements);
         $body = strtr($settings[$target . '_body'], $replacements);
         $bytes = base64_decode($row->pdf, true);
@@ -111,7 +126,11 @@ final class EE_Store {
         try {
             // Attach directly from memory: no customer PDF in a publicly accessible temp folder.
             add_action('phpmailer_init', $attach, PHP_INT_MAX);
-            $ok = wp_mail($target === 'customer' ? $data['email'] : $row->service_email, sanitize_text_field($subject), $body, ['Content-Type: text/plain; charset=UTF-8']);
+            $headers = ['Content-Type: text/plain; charset=UTF-8'];
+            if ($target === 'service' && is_email($data['email'])) {
+                $headers[] = 'Reply-To: ' . sanitize_email($data['email']);
+            }
+            $ok = wp_mail($target === 'customer' ? $data['email'] : $row->service_email, sanitize_text_field($subject), $body, $headers);
         } catch (Throwable $error) { $ok = false; }
         finally { remove_action('phpmailer_init', $attach, PHP_INT_MAX); }
         $wpdb->update($table, [$status => $ok ? 'handed_off' : 'failed'], ['id' => $id]);
