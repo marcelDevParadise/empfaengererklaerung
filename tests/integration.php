@@ -72,17 +72,18 @@ $mailSettings = EE_Plugin::settings();
 $mailSettings['service_body'] = "E-Mail: {email}\nVersanddienstleister: {versanddienstleister}\nAbsender: {absender}\nAdressiert an: {empfaenger}\nSendungsinhalt: {sendungsinhalt}";
 update_option('ee_settings', $mailSettings);
 $sentMail = [];
-add_action('phpmailer_init', static function ($mailer) use (&$sentMail): void {
-    $sentMail[] = ['to' => $mailer->getToAddresses(), 'reply_to' => $mailer->getReplyToAddresses(), 'body' => $mailer->Body];
-}, PHP_INT_MAX - 1);
+add_filter('wp_mail', static function ($args) use (&$sentMail) {
+    $sentMail[] = $args;
+    return $args;
+});
 $submission = $data + ['session' => challenge()]; $result = send_data($submission);
 expect($result instanceof WP_REST_Response, 'submission succeeds in real WordPress');
 $output = $result->get_data(); $query = []; parse_str(wp_parse_url($output['download'], PHP_URL_QUERY), $query); $id = (int) $query['id'];
 $row = EE_Store::get($id); expect($row->customer_status === 'handed_off' && $row->service_status === 'handed_off', 'separate mail statuses saved');
 expect(hash_equals($row->token_hash, hash('sha256', $query['token'])), 'only hashed download token persisted');
 expect(json_decode($row->data, true)['_signature'] === EE_Validation::validate($data)['signature'], 'validated signature retained in protected archive');
-expect(count($sentMail) === 2 && $sentMail[0]['reply_to'][0][0] === $data['email'] && !$sentMail[1]['reply_to'], 'service mail replies to customer; customer copy has no reply-to');
-expect(str_contains($sentMail[0]['body'], 'E-Mail: ' . $data['email']) && str_contains($sentMail[0]['body'], 'Versanddienstleister: DHL') && str_contains($sentMail[0]['body'], 'Sendungsinhalt: ' . $data['contents']) && !str_contains($sentMail[0]['body'], '{'), 'saved service template fields are expanded');
+expect(count($sentMail) === 2 && in_array('Reply-To: ' . $data['email'], $sentMail[0]['headers'], true) && count($sentMail[1]['headers']) === 1, 'service mail replies to customer; customer copy has no reply-to');
+expect(str_contains($sentMail[0]['message'], 'E-Mail: ' . $data['email']) && str_contains($sentMail[0]['message'], 'Versanddienstleister: DHL') && str_contains($sentMail[0]['message'], 'Sendungsinhalt: ' . $data['contents']) && !str_contains($sentMail[0]['message'], '{'), 'saved service template fields are expanded');
 $duplicate = send_data($submission); expect($duplicate->get_data()['reference'] === $output['reference'], 'retry returns same declaration');
 $changed = $submission; $changed['contents'] = 'Changed'; expect(is_wp_error(send_data($changed)) && send_data($changed)->get_error_code() === 'already_submitted', 'changed payload cannot overwrite signed declaration');
 $bytesBefore = $row->pdf; $settings = EE_Plugin::settings(); $settings['company'] = 'Changed branding'; update_option('ee_settings', $settings); expect(EE_Store::get($id)->pdf === $bytesBefore, 'settings preserve original PDF'); $settings['company'] = 'Paketservice'; update_option('ee_settings', $settings);
